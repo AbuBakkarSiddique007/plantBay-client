@@ -3,9 +3,10 @@ import { TbFidgetSpinner } from "react-icons/tb"
 
 const AddPlantForm = ({
   handleSubmit,
-  uploadBtnText,
-  setUploadBtnText,
-  loading
+  handleImageChange,
+  loading,
+  selectedImage,
+  imagePreview
 }) => {
 
   return (
@@ -97,7 +98,7 @@ const AddPlantForm = ({
                 <div className='flex flex-col w-max mx-auto text-center'>
                   <label>
                     <input
-                      onChange={(e) => setUploadBtnText(e.target.files[0])}
+                      onChange={handleImageChange}
                       className='text-sm cursor-pointer w-36 hidden'
                       type='file'
                       name='image'
@@ -107,17 +108,30 @@ const AddPlantForm = ({
                     />
                     <div className='bg-lime-500 text-white border border-gray-300 rounded font-semibold cursor-pointer p-1 px-3 hover:bg-lime-500'>
 
-                      {uploadBtnText.name}
+                      Select Image
 
                     </div>
+                    {imagePreview && (
+                      <div className='mt-4'>
+                        <p className='text-sm text-gray-600 mb-2'>Preview:</p>
+                        <img
+                          src={imagePreview}
+                          alt="Plant preview"
+                          className='w-full h-48 object-cover rounded-lg border border-gray-300'
+                        />
+                        <p className='text-xs text-gray-500 mt-1'>
+                          {selectedImage?.name}
+                        </p>
+                      </div>
+                    )}
+
                   </label>
                 </div>
               </div>
             </div>
-            {
-              uploadBtnText.size && (
-                <p>{uploadBtnText.size} Bytes</p>)
-            }
+
+
+
 
             {/* Submit Button */}
             <button
@@ -138,7 +152,12 @@ const AddPlantForm = ({
 }
 
 AddPlantForm.propTypes = {
+
   handleSubmit: PropTypes.func.isRequired,
+  handleImageChange: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  selectedImage: PropTypes.object,
+  imagePreview: PropTypes.string
 }
 
 export default AddPlantForm

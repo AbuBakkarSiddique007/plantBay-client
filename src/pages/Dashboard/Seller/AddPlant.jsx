@@ -8,8 +8,26 @@ import toast from 'react-hot-toast'
 
 const AddPlant = () => {
   const { user } = useAuth()
-  const [uploadBtnText, setUploadBtnText] = useState({ name: 'Upload Image' })
+
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+
+  const handleImageChange = (event) => {
+    event.preventDefault()
+
+    const file = event.target.files[0]
+    if (file) {
+      setSelectedImage(file)
+    }
+    const createImagePreview = URL.createObjectURL(file)
+    setImagePreview(createImagePreview)
+  }
+
+  console.log(selectedImage);
+  console.log(imagePreview);
+
   const [loading, setLoading] = useState(false)
+
   const axiosSecure = useAxiosSecure()
 
   const handleSubmit = async (event) => {
@@ -50,12 +68,17 @@ const AddPlant = () => {
       await axiosSecure.post('/plants', plantData)
       toast.success("Data added Successfully.")
 
+      form.reset()
+      setSelectedImage(null)
+      setImagePreview(null)
+
     } catch (error) {
       console.log(error);
 
     }
     finally {
       setLoading(false)
+      toast.error("Failed to add plant data.")
     }
 
 
@@ -70,8 +93,9 @@ const AddPlant = () => {
       {/* Form */}
       <AddPlantForm
         handleSubmit={handleSubmit}
-        uploadBtnText={uploadBtnText}
-        setUploadBtnText={setUploadBtnText}
+        handleImageChange={handleImageChange}
+        selectedImage={selectedImage}
+        imagePreview={imagePreview}
         loading={loading}
       />
     </div>
