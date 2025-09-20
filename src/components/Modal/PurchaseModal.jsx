@@ -6,10 +6,92 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@headlessui/react'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
+import useAuth from '../../hooks/useAuth';
+import Button from '../Shared/Button/Button';
 
-const PurchaseModal = ({ closeModal, isOpen }) => {
-  // Total Price Calculation
+import toast from 'react-hot-toast';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+
+const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
+  const { user } = useAuth();
+  const axiosSecure = useAxiosSecure()
+  const { category, name, price, quantity, seller, _id } = plant;
+
+  const [selectedQuantity, setSelectedQuantity] = useState('');
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [address, setAddress] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handlePurchaseInfo = async (e) => {
+    e.preventDefault();
+    if (!address || !selectedQuantity || selectedQuantity < 1) {
+      toast.error('Please enter a valid address and quantity.');
+      return;
+    }
+    setLoading(true);
+
+    const purchaseInfo = {
+      userInfo: {
+        name: user?.displayName,
+        email: user?.email,
+        image: user?.photoURL
+      },
+      plantInfo: {
+        plantId: plant?._id,
+        name: plant?.name,
+        price: plant?.price,
+        totalQuantity: selectedQuantity
+      },
+      seller: seller?.email,
+      address,
+      totalPrice,
+      status: 'pending'
+    };
+
+    console.table(purchaseInfo);
+
+
+    try {
+      await axiosSecure.post('/orders', purchaseInfo);
+      await axiosSecure.patch(`/plants/quantity/${_id}`, { quantityToUpdate: selectedQuantity });
+
+      toast.success('Purchase successful!');
+      refetch()
+      console.log('Purchase Info:', purchaseInfo);
+
+      // Reset form and close modal
+      setSelectedQuantity('');
+      setAddress('');
+      setTotalPrice(0);
+      closeModal();
+
+    } catch (error) {
+      toast.error('Purchase failed!');
+      console.log(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuantityChange = (e) => {
+    let value = Number(e.target.value);
+    if (e.target.value === '') {
+      setSelectedQuantity('');
+      setTotalPrice(0);
+      return;
+    }
+    if (value < 1) {
+      toast.error('Minimum quantity is 1');
+      value = 1;
+    }
+    if (value > quantity) {
+      toast.error(`Maximum quantity is ${quantity}`);
+      value = quantity;
+    }
+    setSelectedQuantity(value);
+    setTotalPrice(value * price);
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -45,21 +127,66 @@ const PurchaseModal = ({ closeModal, isOpen }) => {
                   Review Info Before Purchase
                 </DialogTitle>
                 <div className='mt-2'>
-                  <p className='text-sm text-gray-500'>Plant: Money Plant</p>
+                  <p className='text-sm text-gray-500'>Plant: {name}</p>
                 </div>
                 <div className='mt-2'>
-                  <p className='text-sm text-gray-500'>Category: Indoor</p>
+                  <p className='text-sm text-gray-500'>Category: {category}</p>
                 </div>
                 <div className='mt-2'>
-                  <p className='text-sm text-gray-500'>Customer: PH</p>
+                  <p className='text-sm text-gray-500'>Customer: {user?.displayName}</p>
                 </div>
 
                 <div className='mt-2'>
-                  <p className='text-sm text-gray-500'>Price: $ 120</p>
+                  <p className='text-sm text-gray-500'>Price: ${price}</p>
                 </div>
                 <div className='mt-2'>
-                  <p className='text-sm text-gray-500'>Available Quantity: 5</p>
+                  <p className='text-sm text-gray-500'>Available Quantity: {quantity}</p>
                 </div>
+
+                <div className='space-x-2 mt-2 text-sm'>
+                  <label htmlFor='address' className=' text-gray-600'>
+                    Address:
+                  </label>
+                  <input
+                    className='w-1/2 p-2 text-gray-800 border border-lime-300 focus:outline-lime-500 rounded-md bg-white'
+                    name='address'
+                    id='address'
+                    type='text'
+                    placeholder='Enter your shipping address'
+
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+
+                    required
+                  />
+                </div>
+                <div className='space-x-2 mt-2 text-sm'>
+                  <label htmlFor='quantity' className=' text-gray-600'>
+                    Quantity:
+                  </label>
+                  <input
+                    className='p-2 w-1/2 text-gray-800 border border-lime-300 focus:outline-lime-500 rounded-md bg-white'
+                    min={1}
+                    max={quantity}
+
+                    name='quantity'
+                    id='quantity'
+                    type='number'
+
+                    value={selectedQuantity}
+                    onChange={handleQuantityChange}
+
+                    placeholder='Enter your quantity'
+                    required
+                  />
+                </div>
+
+                <div className='mt-4'>
+                  <Button
+                    onClick={handlePurchaseInfo}
+                    label={`Pay $${totalPrice}`} classes="mt-4 w-full" />
+                </div>
+
               </DialogPanel>
             </TransitionChild>
           </div>

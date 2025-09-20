@@ -69,6 +69,9 @@ Card.propTypes = {
       PropTypes.number
     ]).isRequired,
     _id: PropTypes.string.isRequired,
-    seller: PropTypes.string
+    seller: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.object
+    ])
   }).isRequired
 }
