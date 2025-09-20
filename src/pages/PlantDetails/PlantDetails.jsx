@@ -15,7 +15,7 @@ const PlantDetails = () => {
 
   const { id } = useParams()
 
-  const { data: plant = [], isLoading, refetch } = useQuery({
+  const { data: plant = {}, isLoading, refetch } = useQuery({
     queryKey: ["plant", id],
     queryFn: async () => {
       const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/plants/${id}`)

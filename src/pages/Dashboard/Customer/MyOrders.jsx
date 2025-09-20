@@ -1,7 +1,23 @@
 import { Helmet } from 'react-helmet-async'
 import CustomerOrderDataRow from '../../../components/Dashboard/TableRows/CustomerOrderDataRow'
+import { useQuery } from '@tanstack/react-query'
+import useAxiosSecure from '../../../hooks/useAxiosSecure'
+import useAuth from '../../../hooks/useAuth'
 
 const MyOrders = () => {
+  const { user } = useAuth()
+  const axiosSecure = useAxiosSecure()
+
+  const { data: orders = [] } = useQuery({
+    queryKey: ['orders', user?.email],
+    queryFn: async () => {
+      const { data } = await axiosSecure.get(`/customers-orders/${user?.email}`)
+      return data
+    }
+  })
+
+  console.log(orders);
+
   return (
     <>
       <Helmet>
@@ -60,7 +76,14 @@ const MyOrders = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <CustomerOrderDataRow />
+                  {
+                    orders.map(orderData => (
+                      <CustomerOrderDataRow
+                        key={orderData._id}
+                        orderData={orderData}
+                      />
+                    ))
+                  }
                 </tbody>
               </table>
             </div>
