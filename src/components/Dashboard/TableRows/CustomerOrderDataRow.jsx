@@ -1,17 +1,36 @@
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import DeleteModal from '../../Modal/DeleteModal'
-const CustomerOrderDataRow = ({ orderData }) => {
-  const { address,
-    category,
-    image,
-    name,
-    quantity,
-    status,
-    totalPrice } = orderData
+import useAxiosSecure from '../../../hooks/useAxiosSecure'
+import toast from 'react-hot-toast'
+
+const CustomerOrderDataRow = ({ orderData, refetch }) => {
+  const { category, image, name, quantity, status, totalPrice, _id, plantId } = orderData
+
+  console.log("check: OrderData: ", orderData);
+  console.log("2. plantId from CustomerOrderDataRow:", plantId);
+
+  const axiosSecure = useAxiosSecure()
 
   let [isOpen, setIsOpen] = useState(false)
   const closeModal = () => setIsOpen(false)
+
+  const handleDelete = async () => {
+    try {
+      const { data } = await axiosSecure.delete(`/orders/${_id}`)
+      await axiosSecure.patch(`/plants/quantity/${plantId}`, {
+        quantityToUpdate: quantity,
+        status: 'increase'
+      });
+
+      console.log(data)
+      refetch()
+      toast.success('Order cancelled successfully')
+    } catch (error) {
+      console.log(error)
+      toast.error(error?.response?.data?.message || 'Failed to cancel the order')
+    }
+  }
 
   return (
     <tr>
@@ -54,15 +73,28 @@ const CustomerOrderDataRow = ({ orderData }) => {
           <span className='relative cursor-pointer'>Cancel</span>
         </button>
 
-        <DeleteModal isOpen={isOpen} closeModal={closeModal} />
+        <DeleteModal
+          handleDelete={handleDelete}
+          isOpen={isOpen}
+          closeModal={closeModal} />
       </td>
     </tr>
   )
 }
 
 CustomerOrderDataRow.propTypes = {
-  order: PropTypes.object,
-  refetch: PropTypes.func,
+  orderData: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    totalPrice: PropTypes.number.isRequired,
+    quantity: PropTypes.number.isRequired,
+    status: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    category: PropTypes.string.isRequired,
+    image: PropTypes.string.isRequired,
+    address: PropTypes.string,
+    plantId: PropTypes.string.isRequired,
+  }).isRequired,
+  refetch: PropTypes.func
 }
 
 export default CustomerOrderDataRow

@@ -8,7 +8,7 @@ const MyOrders = () => {
   const { user } = useAuth()
   const axiosSecure = useAxiosSecure()
 
-  const { data: orders = [] } = useQuery({
+  const { data: orders = [], refetch } = useQuery({
     queryKey: ['orders', user?.email],
     queryFn: async () => {
       const { data } = await axiosSecure.get(`/customers-orders/${user?.email}`)
@@ -81,6 +81,7 @@ const MyOrders = () => {
                       <CustomerOrderDataRow
                         key={orderData._id}
                         orderData={orderData}
+                        refetch={refetch}
                       />
                     ))
                   }

@@ -12,6 +12,7 @@ import Button from '../Shared/Button/Button';
 
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
+import { useNavigate } from 'react-router-dom';
 
 const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
   const { user } = useAuth();
@@ -21,7 +22,9 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
   const [selectedQuantity, setSelectedQuantity] = useState('');
   const [totalPrice, setTotalPrice] = useState(0);
   const [address, setAddress] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
 
   const handlePurchaseInfo = async (e) => {
     e.preventDefault();
@@ -54,10 +57,18 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
 
     try {
       await axiosSecure.post('/orders', purchaseInfo);
-      await axiosSecure.patch(`/plants/quantity/${_id}`, { quantityToUpdate: selectedQuantity });
+
+      await axiosSecure.patch(`/plants/quantity/${_id}`, {
+        quantityToUpdate: selectedQuantity,
+        status: 'decrease'
+      });
+
+      console.log("1. ID from PurchaseModal:", _id);
 
       toast.success('Purchase successful!');
-      refetch()
+      refetch();
+      navigate('/dashboard/my-orders');
+
       console.log('Purchase Info:', purchaseInfo);
 
       // Reset form and close modal

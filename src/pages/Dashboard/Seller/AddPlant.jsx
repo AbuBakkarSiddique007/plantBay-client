@@ -74,11 +74,10 @@ const AddPlant = () => {
 
     } catch (error) {
       console.log(error);
-
+      toast.error("Failed to add plant data.")
     }
     finally {
       setLoading(false)
-      toast.error("Failed to add plant data.")
     }
 
 
