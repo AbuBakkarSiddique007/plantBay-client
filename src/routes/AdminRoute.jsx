@@ -3,6 +3,7 @@ import LoadingSpinner from "../components/Shared/LoadingSpinner";
 import useRole from "../hooks/useRole";
 import PropTypes from "prop-types";
 
+// eslint-disable-next-line react/prop-types
 const AdminRoute = ({ children }) => {
     const [role, isLoading] = useRole()
 
