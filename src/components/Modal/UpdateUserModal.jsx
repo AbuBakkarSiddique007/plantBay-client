@@ -17,6 +17,7 @@ const roles = ['customer', 'seller', 'admin']
 
 const UpdateUserModal = ({ setIsOpen, isOpen, role, updateRole }) => {
   const [selected, setSelected] = useState(role)
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
@@ -136,6 +137,8 @@ UpdateUserModal.propTypes = {
   modalHandler: PropTypes.func,
   setIsOpen: PropTypes.func,
   isOpen: PropTypes.bool,
+  role: PropTypes.string,
+  updateRole: PropTypes.func,
 }
 
 export default UpdateUserModal
