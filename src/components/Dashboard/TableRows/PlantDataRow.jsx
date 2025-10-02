@@ -4,6 +4,7 @@ import UpdatePlantModal from '../../Modal/UpdatePlantModal'
 import toast from 'react-hot-toast'
 import useAxiosSecure from '../../../hooks/useAxiosSecure'
 
+// eslint-disable-next-line react/prop-types
 const PlantDataRow = ({ plant, refetch }) => {
 
   // Delete Modal state
@@ -22,7 +23,7 @@ const PlantDataRow = ({ plant, refetch }) => {
 
   const { image, name, category, price, quantity, _id } = plant || {}
 
-  const handleDelete = async () => {
+  const handleDeleteData = async () => {
     try {
       const { data } = await axiosSecure.delete(`/plants/${_id}`)
       console.log(data)
@@ -81,9 +82,9 @@ const PlantDataRow = ({ plant, refetch }) => {
 
         {/* Delete  */}
         <DeleteModal
-        handleDelete={handleDelete}
+        handleDelete={handleDeleteData}
         isOpen={isOpen} closeModal={closeModal} />
-        
+
       </td>
       <td className='px-5 py-5 border-b border-gray-200 bg-white text-sm'>
         <span
