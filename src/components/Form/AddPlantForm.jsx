@@ -1,5 +1,6 @@
 import PropTypes from "prop-types"
 import { TbFidgetSpinner } from "react-icons/tb"
+import { shortImageName } from "../../utilities"
 
 const AddPlantForm = ({
   handleSubmit,
@@ -120,7 +121,10 @@ const AddPlantForm = ({
                           className='w-full h-48 object-cover rounded-lg border border-gray-300'
                         />
                         <p className='text-xs text-gray-500 mt-1'>
-                          {selectedImage?.name}
+                          {/* {selectedImage?.name} */}
+
+                          {/* make short image name */}
+                          {shortImageName(selectedImage?.name)}
                         </p>
                       </div>
                     )}
