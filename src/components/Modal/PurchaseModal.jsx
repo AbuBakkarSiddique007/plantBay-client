@@ -8,16 +8,22 @@ import {
 } from '@headlessui/react'
 import { Fragment, useState } from 'react'
 import useAuth from '../../hooks/useAuth';
-import Button from '../Shared/Button/Button';
 
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { useNavigate } from 'react-router-dom';
 
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import CheckoutForm from '../Form/CheckoutForm';
+
+const stripePromise = loadStripe(import.meta.env.VITE_PAYMENT_PUBLISHABLE_KEY);
+
+
 const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure()
-  const { category, name, price, quantity, seller, _id } = plant;
+  const { category, name, price, quantity, seller, _id } = plant || {};
 
   const [selectedQuantity, setSelectedQuantity] = useState('');
   const [totalPrice, setTotalPrice] = useState(0);
@@ -26,6 +32,34 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate()
 
+  const [purchaseInfo, setPurchaseInfo] = useState({
+    userInfo: {
+      name: user?.displayName,
+      email: user?.email,
+      image: user?.photoURL,
+    },
+    plantInfo: {
+      plantId: plant?._id,
+      name: plant?.name,
+      price: plant?.price,
+      totalQuantity: selectedQuantity,
+    },
+    seller: seller?.email,
+    address,
+    totalPrice,
+    status: 'pending',
+  });
+
+  // Update purchaseInfo when form fields change (no useEffect)
+  const handleAddressChange = (e) => {
+    const val = e.target.value;
+    setAddress(val);
+    setPurchaseInfo((prev) => ({
+      ...prev,
+      address: val,
+    }));
+  };
+
   const handlePurchaseInfo = async (e) => {
     e.preventDefault();
     if (!address || !selectedQuantity || selectedQuantity < 1) {
@@ -33,24 +67,6 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
       return;
     }
     setLoading(true);
-
-    const purchaseInfo = {
-      userInfo: {
-        name: user?.displayName,
-        email: user?.email,
-        image: user?.photoURL
-      },
-      plantInfo: {
-        plantId: plant?._id,
-        name: plant?.name,
-        price: plant?.price,
-        totalQuantity: selectedQuantity
-      },
-      seller: seller?.email,
-      address,
-      totalPrice,
-      status: 'pending'
-    };
 
     console.table(purchaseInfo);
 
@@ -90,6 +106,11 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
     if (e.target.value === '') {
       setSelectedQuantity('');
       setTotalPrice(0);
+      setPurchaseInfo((prev) => ({
+        ...prev,
+        plantInfo: { ...prev.plantInfo, totalQuantity: '' },
+        totalPrice: 0,
+      }));
       return;
     }
     if (value < 1) {
@@ -102,6 +123,11 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
     }
     setSelectedQuantity(value);
     setTotalPrice(value * price);
+    setPurchaseInfo((prev) => ({
+      ...prev,
+      plantInfo: { ...prev.plantInfo, totalQuantity: value },
+      totalPrice: value * price,
+    }));
   };
 
   return (
@@ -192,11 +218,23 @@ const PurchaseModal = ({ closeModal, isOpen, plant, refetch }) => {
                   />
                 </div>
 
-                <div className='mt-4'>
+                {/* CheckOutForm */}
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm
+                    closeModal={closeModal}
+                    purchaseInfo={purchaseInfo}
+                    refetch={refetch}
+                    selectedQuantity={selectedQuantity}
+
+                  ></CheckoutForm>
+                </Elements>
+
+                {/* <div className='mt-4'>
                   <Button
                     onClick={handlePurchaseInfo}
                     label={`Pay $${totalPrice}`} classes="mt-4 w-full" />
-                </div>
+                </div> */}
+
 
               </DialogPanel>
             </TransitionChild>
